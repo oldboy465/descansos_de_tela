@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundo Interativo com Pontinhos</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            display: block;
+        }
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 10;
+        }
+        #controls input, #controls select, #controls button {
+            margin: 5px 0;
+            padding: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <label>Quantidade de Pontinhos: <input type="number" id="dotCount" value="50" min="1"></label><br>
+        <label>Velocidade: <input type="range" id="speed" min="1" max="10" value="5"></label><br>
+        <label>Cor dos Pontinhos: <input type="color" id="dotColor" value="#ffffff"></label><br>
+        <label>Tamanho dos Pontinhos: <input type="range" id="dotSize" min="1" max="10" value="2"></label><br>
+        <button onclick="resetCanvas()">Resetar</button>
+    </div>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let dots = [];
+        let dotCount = parseInt(document.getElementById('dotCount').value);
+        let speed = parseInt(document.getElementById('speed').value);
+        let dotColor = document.getElementById('dotColor').value;
+        let dotSize = parseInt(document.getElementById('dotSize').value);
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Dot {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * speed;
+                this.vy = (Math.random() - 0.5) * speed;
+                this.size = dotSize;
+                this.color = dotColor;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                    this.x = canvas.width / 2;
+                    this.y = canvas.height / 2;
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function createDots(count) {
+            dots = [];
+            for (let i = 0; i < count; i++) {
+                dots.push(new Dot(canvas.width / 2, canvas.height / 2));
+            }
+        }
+
+        function resetCanvas() {
+            dotCount = parseInt(document.getElementById('dotCount').value);
+            speed = parseInt(document.getElementById('speed').value);
+            dotColor = document.getElementById('dotColor').value;
+            dotSize = parseInt(document.getElementById('dotSize').value);
+            createDots(dotCount);
+        }
+
+        createDots(dotCount);
+
+        canvas.addEventListener('mousemove', (e) => {
+            for (let i = 0; i < dotCount / 10; i++) {
+                dots.push(new Dot(e.clientX, e.clientY));
+            }
+        });
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            dots.forEach(dot => {
+                dot.update();
+                dot.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
